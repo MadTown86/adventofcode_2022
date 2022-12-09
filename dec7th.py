@@ -50,13 +50,15 @@ class TreeMake:
     def _is_empty(self):
         return self._size == 0
 
-    def p_next(self, p):
-        org = self._validate(p)
-        if org
-        return p._sibling
+    def _p_next(self, p):
+        if not p._element:
+            raise StopIteration
+        else:
+            node = self._validate(p)
+            return node._sibling
 
-    def rootf(self):
-        self._root = self.Node(None, None, None, None)
+    def _rootf(self, e):
+        self._root = self.Node(None, e, None, None)
         self._size += 1
         return self._make_position(self._root)
 
@@ -92,7 +94,7 @@ class TreeMake:
         node = self._validate(p)
         return node.num_children != 0
 
-    def after(self, p):
+    def _after(self, p):
         node = self._validate(p)
         if node._sibling is None:
             return None
@@ -104,17 +106,28 @@ class TreeMake:
         node = self._validate(p)
         return self._make_position(node._children)
 
+    def breadthprint(self, p):
+        ret = []
+        while True:
+            if self._p_next(p):
+                ret.append(self.get_element(p))
+                p = self._after(p)
+            else:
+                ret.append(self.get_element(p))
+                break
+        return ret
+
     def traverse(self, p, e):
         if self.get_element(p) is e:
             return p
         else:
             if self.is_leaf(p):
                 return None
-            while self.after(p) is not None:
-                p = self.after(p)
+            while self._after(p) is not None:
+                p = self._after(p)
                 self.traverse(p, e)
             p = self.first_sibling(p)
-            while self.after(p) is not None:
+            while self._after(p) is not None:
                 p = self.down(p)
                 self.traverse(p, e)
 
@@ -137,7 +150,6 @@ class TreeMake:
             i_shed = []
 
 
-
 if __name__ == "__main__":
     T = TreeMake()
     N1 = T.rootf()
@@ -148,10 +160,12 @@ if __name__ == "__main__":
     # N6 = T.first_sibling(N4)
     # N6 = T.add_child("FORALL", N5)
     p = N2
-    while True:
-        if T.p_next(p):
-            print(p._element)
-            p = T.after(p)
+    print(T.breadthprint(p))
+
+
+
+
+
 
 
 
