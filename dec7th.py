@@ -7,14 +7,15 @@ fname = lp_proj + "\\" + 'dec7thinput.txt'
 
 class TreeMake:
     class Node:
-        __slots__ = '_parent', '_element', '_children', '_sibling', 'num_children'
+        __slots__ = '_parent', '_element', '_first_child', '_right_sibling', 'num_children', 'num_siblings'
 
-        def __init__(self, parent, element, sibling, child):
+        def __init__(self, element, parent=None, right_sibling=None, first_child=None):
             self._parent = parent
             self._element = element
-            self._children = child
-            self._sibling = sibling
+            self._first_child = first_child
+            self._right_sibling = right_sibling
             self.num_children = 0
+            self.num_siblings = 0
 
     class Position:
         def __init__(self, container, node):
@@ -23,9 +24,6 @@ class TreeMake:
 
         def _element(self):
             return self._node._element
-
-        def _sibling(self):
-            return self._node._sibling is True
 
         def __eq__(self, other):
             return type(self) is type(other) and self._node is other._node
@@ -38,6 +36,8 @@ class TreeMake:
             raise TypeError('Not a valid posiition')
         if p._container is not self:
             raise ValueError('Does not belong to this contaienr')
+        if p._node._parent is p._node:
+            raise ValueError("p is no longer valid")
         return p._node
 
     def _make_position(self, node):
@@ -47,120 +47,143 @@ class TreeMake:
         self._root = None
         self._size = 0
 
-    def _is_empty(self):
-        return self._size == 0
+    def __len__(self):
+        return self._size
 
-    def _p_next(self, p):
-        if not p._element:
-            raise StopIteration
-        else:
-            node = self._validate(p)
-            return node._sibling
-
-    def _rootf(self, e):
-        self._root = self.Node(None, e, None, None)
-        self._size += 1
+    # Positioners
+    def _atroot(self, p):
+        # Return position at root of tree else raise ValueError
+        if self._root is None:
+            raise ValueError("No root created for this tree")
         return self._make_position(self._root)
 
-    def is_root(self):
-        return self._root is not None
-
-    def at_root(self):
-        if not self.is_root():
-            raise Exception('No Root')
-        return self._make_position(self._root)
-
-    def get_element(self, p):
-        org = self._validate(p)
-        return org._element
-    def add_child(self, e, p: Position):
-        original = self._validate(p)
-        newnode = self.Node(original, e, None, None)
-        original.num_children += 1
-        original._children = newnode
-        return self._make_position(newnode)
-
-    def add_sibling(self, p, e):
-        original = self._validate(p)
-        newest = self.Node(original._parent, e, None, None)
-        original._sibling = newest
-        return self._make_position(newest)
-
-    def first_sibling(self, p):
+    def _atfirst_child(self, p):
+        # Return position of first_child of node at position p, else raise ValueError
         node = self._validate(p)
-        return self._make_position(node._parent._children)
+        if node._first_child is None:
+            raise ValueError('node at position has no child')
+        return self._make_position(node._first_child)
 
-    def has_children(self, p):
+    def _at_parent(self, p):
+        # Return position of parent of node at position p else Raise ValueError
         node = self._validate(p)
-        return node.num_children != 0
+        if node._parent is None and self._root is node:
+            raise ValueError('node at position is root, no parent')
+        return self._make_position(node._parent)
 
-    def _after(self, p):
+    # Counters
+    def _num_children(self, p):
+        # Returns num_children attribute of node at p
         node = self._validate(p)
-        if node._sibling is None:
-            return None
-        return self._make_position(node._sibling)
+        return node.num_children
 
-    def down(self, p):
-        if self.is_leaf(p):
-            return None
+    def _num_siblings(self, p):
+        # Returns number of siblings stored at first sibling only
         node = self._validate(p)
-        return self._make_position(node._children)
+        if node._parent._first_child is None:
+            return 0
+        return node._parent._first_child.num_siblings
 
-    def breadthprint(self, p):
-        ret = []
-        while True:
-            if self._p_next(p):
-                ret.append(self.get_element(p))
-                p = self._after(p)
-            else:
-                ret.append(self.get_element(p))
-                break
-        return ret
+    # Accessors
+    def _add_first_child(self, p, e):
+        # Add first child, return position
+        node = self._validate(p)
+        if node._first_child is not None:
+            raise ValueError("First child already exists")
+        node._first_child = self.Node(e, parent=node)
+        node._first_child.num_siblings += 1
+        node.num_children += 1
+        return self._make_position(node._first_child)
 
-    def traverse(self, p, e):
-        if self.get_element(p) is e:
+    def _add_right_sibling(self, p, e):
+        # Add sibling to right of given sibling, if no first sibling, create
+        node = self._validate(p)
+        if node._right_sibling is not None:
+            while node._right_sibling is not None:
+                node = node._right_sibling
+            node._right_sibling = self.Node(e, parent=node._parent)
+            node._parent.num_children += 1
+            node._parent._first_child.num_siblings += 1
+            return self._make_position(node._right_sibling)
+        node._right_sibling = self.Node(e, parent=node._parent)
+        node._parent.num_children += 1
+        node._parent._first_child.num_siblings += 1
+        return self._make_position(node._right_sibling)
+
+    def _replace_value(self, p, e):
+        # Replace value at p, return old value
+        if not isinstance(p, self.Position):
+            raise TypeError("p is not a valid position")
+        if p._element is None:
+            raise ValueError('p holds no value')
+        old = p._element
+        p._element = e
+        return old
+
+    def _delete(self, p):
+        # Delete node at p, return value
+        node = self._validate(p)
+        if node._parent._first_child is node:
+            if node._right_sibling is None:
+                node._parent._first_child = None
+                return node._value
+
+    def _is_leaf(self, p):
+        return p._node._num_children == 0
+
+    def _attach(self, p, t1):
+        node = self._validate(p)
+        if self._num_children(p) > 0:
+            raise TypeError("position must be leaf")
+        if not type(self) is type(t1): raise TypeError("Trees must match")
+        if not t1.is_empty():
+            t1._root = node
+            t1._root._first_child._parent = node
+            self._size += t1._size
+            t1._size = 0
+
+
+
+
+    # Traversal generators
+    def _breadth(self, p):
+        #  Traverse accross siblings until None, yields _element
+        node = self._validate(p)
+        while node._right_sibling is not None:
+            yield self._make_position(node)
+            node = node._right_sibling
+        yield self._make_position(node)
+
+    def _d_then_b(self, p, v):
+        # Travel breadth first
+        if p._element == v:
             return p
-        else:
-            if self.is_leaf(p):
-                return None
-            while self._after(p) is not None:
-                p = self._after(p)
-                self.traverse(p, e)
-            p = self.first_sibling(p)
-            while self._after(p) is not None:
-                p = self.down(p)
-                self.traverse(p, e)
+        for x in self._breadth(p):
+            if p._element == v:
+                return p
+            elif p._num_children > 0:
+                self._d_then_b(p, v)
+            else:
+                continue
 
-    def change_directory(self, e):
-        if not self.is_root():
-            raise Exception('No Root')
-        walk = self.at_root()
 
-    def is_leaf(self, p):
-        node = self._validate(p)
-        return node.num_children == 0
 
-    def build(self, fname):
-        commands = {
-            '$ cd /': lambda: self._rootf(),
-            '$ ls ': None
-        }
-        with open(fname, 'r') as fp:
-            i = fp.read()
-            i_shed = []
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
-    T = TreeMake()
-    N1 = T.rootf()
-    N2 = T.add_child("BB1", N1)
-    N3 = T.add_sibling(N2, "BB2")
-    N4 = T.add_sibling(N3, "BB3")
-    N5 = T.add_sibling(N4, "BB4")
-    # N6 = T.first_sibling(N4)
-    # N6 = T.add_child("FORALL", N5)
-    p = N2
-    print(T.breadthprint(p))
+    pass
 
 
 
