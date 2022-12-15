@@ -85,6 +85,10 @@ class TreeMake:
         return node._parent._first_child.num_siblings
 
     # Accessors
+
+    def _rootbegin(self, e):
+        self._root = e
+        return self._make_position(self._root)
     def _add_first_child(self, p, e):
         # Add first child, return position
         node = self._validate(p)
@@ -142,9 +146,6 @@ class TreeMake:
             self._size += t1._size
             t1._size = 0
 
-
-
-
     # Traversal generators
     def _breadth(self, p):
         #  Traverse accross siblings until None, yields _element
@@ -166,24 +167,23 @@ class TreeMake:
             else:
                 continue
 
-
-
-
-
-
-
-
-
-
-
-
+    def treemake(self, e):
+        return self._rootbegin(e)
 
 
 
 
 
 if __name__ == "__main__":
-    pass
+    T = TreeMake()
+    NRoot = T.treemake("Root")
+    NA1 = T._add_first_child(NRoot, "A1")
+    NA2 = T._add_right_sibling(NA1, "A2")
+    NA3 = T._add_right_sibling(NA2, "A3")
+    NB1 = T._add_first_child(T._atfirst_child(), "B1")
+    NB2 = T._add_right_sibling(NB1, "B2")
+    NB3 = T._add_right_sibling(NB2, "B3")
+    AB1 = T._add_right_sibling(T._at_parent(NB3), "AB1")
 
 
 
