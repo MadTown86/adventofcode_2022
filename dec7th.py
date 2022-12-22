@@ -1,8 +1,7 @@
 import dotenv
 import os
 
-dv = dotenv.DotEnv(os.getenv('localAdvent2022'))
-lp_proj = dv.get("root_local")
+lp_proj = dotenv.get_key(os.getenv('adventofcode2022'), 'root_local')
 fname = lp_proj + "\\" + 'dec7thinput.txt'
 
 class TreeMake:
@@ -36,13 +35,15 @@ class TreeMake:
             raise TypeError('Not a valid posiition')
         if p._container is not self:
             raise ValueError('Does not belong to this contaienr')
-        if p._node._parent is p._node:
-            raise ValueError("p is no longer valid")
+        # if p._node._parent is p._node:
+        #     raise ValueError("p is no longer valid")
         return p._node
 
     def _make_position(self, node):
         return self.Position(self, node)
 
+    def is_empty(self, p):
+        return p._element == None
     def __init__(self):
         self._root = None
         self._size = 0
@@ -87,8 +88,9 @@ class TreeMake:
     # Accessors
 
     def _rootbegin(self, e):
-        self._root = e
+        self._root = self.Node(e)
         return self._make_position(self._root)
+
     def _add_first_child(self, p, e):
         # Add first child, return position
         node = self._validate(p)
@@ -155,20 +157,29 @@ class TreeMake:
             node = node._right_sibling
         yield self._make_position(node)
 
+    #TODO review recursion here, no accurate base case or pathway for when value not found
     def _d_then_b(self, p, v):
         # Travel breadth first
-        if p._element == v:
+        if p._element() == v:
             return p
+        node = self._validate(p)
         for x in self._breadth(p):
-            if p._element == v:
-                return p
-            elif p._num_children > 0:
+            if x._element() == v:
+                return x
+            elif x._node.num_children > 0:
                 self._d_then_b(p, v)
             else:
                 continue
 
+    def first_child(self, p):
+        node = self._validate(p)
+        if node._first_child:
+            return node._first_child._element
+        else:
+            raise ValueError("No Children")
+
     def treemake(self, e):
-        return self._rootbegin(e)
+        return self.rootbegin(e)
 
 
 
@@ -176,14 +187,22 @@ class TreeMake:
 
 if __name__ == "__main__":
     T = TreeMake()
-    NRoot = T.treemake("Root")
-    NA1 = T._add_first_child(NRoot, "A1")
+    NRoot = T._rootbegin("Root")
+    NA1 = T._add_first_child(p=NRoot, e="A1")
     NA2 = T._add_right_sibling(NA1, "A2")
     NA3 = T._add_right_sibling(NA2, "A3")
-    NB1 = T._add_first_child(T._atfirst_child(), "B1")
+    NB1 = T._add_first_child(T._atfirst_child(NRoot), "B1")
     NB2 = T._add_right_sibling(NB1, "B2")
     NB3 = T._add_right_sibling(NB2, "B3")
     AB1 = T._add_right_sibling(T._at_parent(NB3), "AB1")
+
+    # for x in T._breadth(NA1):
+    #     print(x._element())
+
+    P = T.first_child(NA1)
+    # print(P)
+    # print(NA1._element())
+    print(T._d_then_b(NA1, "B1"))
 
 
 
