@@ -4,6 +4,7 @@ from collections import deque
 lp_proj = dotenv.get_key(os.getenv('adventofcode2022'), 'root_local')
 fname = lp_proj + "\\" + 'dec7thinput.txt'
 
+
 class TreeMake:
     class Node:
         __slots__ = '_parent', '_element', '_first_child', '_right_sibling', 'num_children', 'num_siblings'
@@ -64,6 +65,15 @@ class TreeMake:
         if node._first_child is None:
             raise ValueError('node at position has no child')
         return self._make_position(node._first_child)
+
+    def _at_last_sibling(self, p):
+        node = self._validate(p)
+        if node._right_sibling is None:
+            return self._make_position(node)
+        else:
+            while node._right_sibling is not None:
+                node = node._right_sibling
+            return self._make_position(node)
 
     def _at_parent(self, p):
         # Return position of parent of node at position p else Raise ValueError
@@ -148,8 +158,8 @@ class TreeMake:
             self._size += t1._size
             t1._size = 0
 
-    # Traversal generators
-    def _breadth(self, p):
+    # Traversal
+    def _breadth_yield(self, p):
         #  Traverse accross siblings until None, yields _element
         node = self._validate(p)
         while node._right_sibling is not None:
@@ -157,18 +167,31 @@ class TreeMake:
             node = node._right_sibling
         yield self._make_position(node)
 
-    #TODO review recursion here, no accurate base case or pathway for when value not found
+    def _breadth_bin(self, p):
+        res = []
+        node = self._validate(p)
+        while node._right_sibling is not None:
+            res.append(node)
+            node = node._right_sibling
+        res.append(self._make_position(node))
+        return res
+
     def _file_search(self, v):
         q = deque()
         start = self._atroot()
+        r_node = self._validate(start)
+        if r_node._element == v:
+            return start
         if not self._num_children(start) > 0:
             raise ValueError("Empty Tree")
         node = self._validate(start)
 
         def diver(node, v):
+            print(f'DIVER STEP: {node._element}')
             if node._element == v:
                 return self._make_position(node)
             while node._first_child is not None:
+                print(f'WHILE DIVER STEP: {node._element}')
                 if node._element == v:
                     return self._make_position(node)
                 if node.num_siblings == 0:
@@ -180,7 +203,7 @@ class TreeMake:
                 return self._make_position(node)
             if node._right_sibling:
                 q.append(node._right_sibling)
-            return None
+
 
         diver(node, v)
 
@@ -189,17 +212,17 @@ class TreeMake:
         # Or the deque is empty
         while len(q) > 0:
             node = q.popleft()
+            if node == None:
+                raise ValueError("Value Not Found") and StopIteration("End Of Tree")
+            print(f'QUEUE STEP: {node._element}')
+            p = self._make_position(node)
             if node._element == v:
                 return self._make_position(node)
-
-
-
-
-
-
-
-
-
+            if self._is_leaf(p):
+                if self._num_siblings(p) is not None:
+                    q.append(node._right_sibling)
+            else:
+                diver(node, v)
 
     def first_child(self, p):
         node = self._validate(p)
@@ -208,15 +231,36 @@ class TreeMake:
         else:
             raise ValueError("No Children")
 
-    def treemake(self, e):
-        return self.rootbegin(e)
+    def treemake(self, fname):
+        with open(fname, 'r') as fp:
+            line1 = fp.readline()
+            root = self._rootbegin(line1[5:])
+            fp.seek(0)
+            for line in fp.readlines():
+                print(line)
+                if line[:1] == '$':
+                    if 'cd' in line[:1]:
+                        curr_p = self._file_search(line[5:])
+                    if 'ls' in line[:1]:
+                        continue
+                if 'dir' in line:
 
-
-
+                    check_bin = self._breadth_bin(curr_p)
+                    if line[5:-1] in check_bin:
+                        continue
+                    else:
+                        node = self._validate(curr_p)
+                        if node.num_children == 0:
+                            self._add_first_child(curr_p, line[5:-1])
+                        add_pos = self._at_last_sibling(self._atfirst_child(curr_p))
+                        self._add_right_sibling(add_pos, line[5:-1])
 
 
 if __name__ == "__main__":
     T = TreeMake()
+    T.treemake(fname)
+
+
     NRoot = T._rootbegin("Root")
     NA1 = T._add_first_child(p=NRoot, e="A1")
     NA2 = T._add_right_sibling(NA1, "A2")
@@ -229,10 +273,15 @@ if __name__ == "__main__":
     # for x in T._breadth(NA1):
     #     print(x._element())
 
-    P = T.first_child(NA1)
-    # print(P)
-    # print(NA1._element())
-    print(T._file_search("A2"))
+    # P = T.first_child(NA1)
+    # # print(P)
+    # # print(NA1._element())
+    # try:
+    #     p = T._file_search("AB")
+    #     print(p._element())
+    # except ValueError as er:
+    #     print(er)
+
 
 
 
