@@ -1,6 +1,6 @@
 import dotenv
 import os
-
+from collections import deque
 lp_proj = dotenv.get_key(os.getenv('adventofcode2022'), 'root_local')
 fname = lp_proj + "\\" + 'dec7thinput.txt'
 
@@ -52,7 +52,7 @@ class TreeMake:
         return self._size
 
     # Positioners
-    def _atroot(self, p):
+    def _atroot(self):
         # Return position at root of tree else raise ValueError
         if self._root is None:
             raise ValueError("No root created for this tree")
@@ -135,7 +135,7 @@ class TreeMake:
                 return node._value
 
     def _is_leaf(self, p):
-        return p._node._num_children == 0
+        return p._node.num_children == 0
 
     def _attach(self, p, t1):
         node = self._validate(p)
@@ -158,18 +158,48 @@ class TreeMake:
         yield self._make_position(node)
 
     #TODO review recursion here, no accurate base case or pathway for when value not found
-    def _d_then_b(self, p, v):
-        # Travel breadth first
-        if p._element() == v:
-            return p
-        node = self._validate(p)
-        for x in self._breadth(p):
-            if x._element() == v:
-                return x
-            elif x._node.num_children > 0:
-                self._d_then_b(p, v)
-            else:
-                continue
+    def _file_search(self, v):
+        q = deque()
+        start = self._atroot()
+        if not self._num_children(start) > 0:
+            raise ValueError("Empty Tree")
+        node = self._validate(start)
+
+        def diver(node, v):
+            if node._element == v:
+                return self._make_position(node)
+            while node._first_child is not None:
+                if node._element == v:
+                    return self._make_position(node)
+                if node.num_siblings == 0:
+                    node = node._first_child
+                    continue
+                q.append(node._right_sibling)
+                node = node._first_child
+            if node._element == v:
+                return self._make_position(node)
+            if node._right_sibling:
+                q.append(node._right_sibling)
+            return None
+
+        diver(node, v)
+
+        # Finish loop through deck to clear it of everything that doesn't either populate it with more values
+        # Is the value looking for
+        # Or the deque is empty
+        while len(q) > 0:
+            node = q.popleft()
+            if node._element == v:
+                return self._make_position(node)
+
+
+
+
+
+
+
+
+
 
     def first_child(self, p):
         node = self._validate(p)
@@ -202,7 +232,7 @@ if __name__ == "__main__":
     P = T.first_child(NA1)
     # print(P)
     # print(NA1._element())
-    print(T._d_then_b(NA1, "B1"))
+    print(T._file_search("A2"))
 
 
 
