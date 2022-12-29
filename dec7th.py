@@ -113,17 +113,11 @@ class TreeMake:
     def _add_right_sibling(self, p, e):
         # Add sibling to right of given sibling, if no first sibling, create
         node = self._validate(p)
-        if node._first_child == None:
-            new_node = self.Node(e, parent=node)
-            node._first_child = new_node
-            node.num_children += 1
-            return self._make_position(new_node)
-        cur = node._first_child
-        while cur._right_sibling is not None:
-            cur = cur._right_sibling
-        new_node = self.Node(e, parent=node)
-        cur._right_sibling = new_node
-        node.num_children += 1
+        while node._right_sibling is not None:
+            node = node._right_sibling
+        new_node = self.Node(e, parent=node._parent)
+        node._right_sibling = new_node
+        node._parent.num_children += 1
         return self._make_position(new_node)
 
     def _replace_value(self, p, e):
@@ -193,8 +187,6 @@ class TreeMake:
             return self._make_position(self._root)
         if self._num_children(self._make_position(self._root)) == 0:
             raise ValueError("Empty Tree")
-        print(self._root._element)
-        print(self._root._first_child._element)
         q.append(self._root._first_child)
         pos = self._root._first_child
         while pos._right_sibling is not None:
@@ -222,7 +214,6 @@ class TreeMake:
             self._rootbegin(line1[5:-1])
             fp.seek(0)
             for line in fp.readlines():
-                print(line)
                 if line[:1] == '$':
                     if 'cd' in line:
                         if '..' in line:
@@ -232,9 +223,14 @@ class TreeMake:
                             curr_p = self._file_search(currval)
                             continue
                     if 'ls' in line:
+                        print("\nSEPARATOR LINE")
+                        try:
+                            self.treeprint()
+                        except ValueError:
+                            pass
+                        print("SEPARATOR LINE\n")
                         continue
                 if 'dir' in line:
-                    print(self._validate(curr_p)._element)
                     check_bin = self._breadth_bin(curr_p)
                     if line[5:-1] in check_bin:
                         continue
@@ -244,8 +240,8 @@ class TreeMake:
                         if node.num_children == 0:
                             self._add_first_child(curr_p, addval)
                             continue
-                        add_pos = self._atfirst_child(curr_p)
-                        self._add_right_sibling(add_pos, addval)
+                        add_posdir = self._atfirst_child(curr_p)
+                        self._add_right_sibling(add_posdir, addval)
                         continue
                 elif 'cd' and 'dir' not in line:
                     node = self._validate(curr_p)
@@ -253,7 +249,32 @@ class TreeMake:
                     if node.num_children == 0:
                         self._add_first_child(curr_p, addval)
                     else:
-                        self._add_right_sibling(curr_p, addval)
+                        add_posfile = self._atfirst_child(curr_p)
+                        self._add_right_sibling(add_posfile, addval)
+
+    def treeprint(self):
+        if not self._root:
+            raise ValueError("Root Empty")
+        if not self._root._first_child:
+            raise ValueError("Tree Empty")
+        q2 = deque()
+        q2.append(self._root._first_child)
+        node = self._root._first_child
+        while node._right_sibling is not None:
+            q2.append(node._right_sibling)
+            node = node._right_sibling
+
+        while len(q2) > 0:
+            node = q2.popleft()
+            print(node._element)
+            if node._first_child is not None:
+                q2.append(node._first_child)
+                curr = node._first_child
+                while curr._right_sibling is not None:
+                    q2.append(curr._right_sibling)
+                    curr = curr._right_sibling
+
+
 
 
 if __name__ == "__main__":
@@ -277,6 +298,8 @@ if __name__ == "__main__":
     # N3a2b = T._add_right_sibling(N3a2a, "3a2b")
     # N3a2a1 = T._add_first_child(N3a2a, "3a2a1")
     # AB1 = T._add_right_sibling(T._at_parent(NB3), "AB1")
+
+    # T.treeprint()
     #
     # def pos_printer(p):
     #     node = T._validate(p)
