@@ -270,13 +270,58 @@ class TreeMake:
                     q2.append(curr._right_sibling)
                     curr = curr._right_sibling
 
+    def treecalc(self):
+        if not self._root:
+            raise ValueError("Root Empty")
+        if not self._root._first_child:
+            raise ValueError("Tree Empty")
+        res = []
+        parsed = set()
+        q_all = deque()
+        q_files = deque()
+        q_all.append(self._root._first_child)
+        node = self._root._first_child
+        while node._right_sibling is not None:
+            q_all.append(node._right_sibling)
+            node = node._right_sibling
+
+        while len(q_all) > 0:
+            node_b = q_all.popleft()
+            vh_element = type(node_b._element)
+            if isinstance(node_b._element, list):
+                vh_int = int(node_b._element[0])
+                if int(node_b._element[0]) < 100000:
+                    p_list = []
+                    # TODO: double check I am not missing a node due to loop struct
+                    while node_b is not self._root:
+                        p_list.append(node_b._parent._element)
+                        node_b = node_b._parent
+                    p_list.append(node_b._parent)
+                    q_files.append(node_b)
+            if node_b._first_child is not None:
+                q_all.append(node_b._first_child)
+                curr = node_b._first_child
+                while curr._right_sibling is not None:
+                    q_all.append(curr._right_sibling)
+                    curr = curr._right_sibling
+
+        for item in q_files:
+            print(item._element)
+
+
+
+
+
+
+
+
 
 
 
 if __name__ == "__main__":
     T = TreeMake()
     T.treemake(fname)
-    T.treeprint()
+    T.treecalc()
 
 
     # NRoot = T._rootbegin("Root")
