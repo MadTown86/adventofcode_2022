@@ -176,6 +176,7 @@ class TreeMake:
         pos = node._first_child
         while pos._right_sibling is not None:
             res.append(pos._element)
+            pos = pos._right_sibling
         res.append(pos._element)
         return res
 
@@ -214,6 +215,7 @@ class TreeMake:
             self._rootbegin(line1[5:-1])
             fp.seek(0)
             for line in fp.readlines():
+                node, addval = None, None
                 if line[:1] == '$':
                     if 'cd' in line:
                         if '..' in line:
@@ -223,12 +225,6 @@ class TreeMake:
                             curr_p = self._file_search(currval)
                             continue
                     if 'ls' in line:
-                        print("\nSEPARATOR LINE")
-                        try:
-                            self.treeprint()
-                        except ValueError:
-                            pass
-                        print("SEPARATOR LINE\n")
                         continue
                 if 'dir' in line:
                     check_bin = self._breadth_bin(curr_p)
@@ -280,6 +276,7 @@ class TreeMake:
 if __name__ == "__main__":
     T = TreeMake()
     T.treemake(fname)
+    T.treeprint()
 
 
     # NRoot = T._rootbegin("Root")
