@@ -1,7 +1,7 @@
 import dotenv
 import os
 from collections import deque
-lp_proj = dotenv.get_key(os.getenv('localAdvent2022'), 'root_local')
+lp_proj = dotenv.get_key(os.getenv('adventofcode2022'), 'root_local')
 fname = lp_proj + "\\" + 'dec7thinput.txt'
 
 
@@ -107,6 +107,7 @@ class TreeMake:
         if node._first_child is not None:
             raise ValueError("First child already exists")
         node._first_child = self.Node(e, parent=node)
+        node._first_child.num_siblings += 1
         node.num_children += 1
         return self._make_position(node._first_child)
 
@@ -288,25 +289,30 @@ class TreeMake:
         while len(q_all) > 0:
             node_b = q_all.popleft()
             vh_element = type(node_b._element)
+            if not isinstance(node_b._element, list):
+                if node_b._first_child is not None:
+                    q_all.append(node_b._first_child)
+                    curr = node_b._first_child
+                    while curr._right_sibling is not None:
+                        if curr._right_sibling not in q_all:
+                            q_all.append(curr._right_sibling)
+                            curr = curr._right_sibling
             if isinstance(node_b._element, list):
                 vh_int = int(node_b._element[0])
+                vh_fn = node_b._element[1]
+                if vh_fn in parsed:
+                    continue
+                parsed.add(vh_fn)
                 if int(node_b._element[0]) < 100000:
                     p_list = []
                     # TODO: double check I am not missing a node due to loop struct
                     while node_b is not self._root:
                         p_list.append(node_b._parent._element)
                         node_b = node_b._parent
-                    p_list.append(node_b._parent)
-                    q_files.append(node_b)
-            if node_b._first_child is not None:
-                q_all.append(node_b._first_child)
-                curr = node_b._first_child
-                while curr._right_sibling is not None:
-                    q_all.append(curr._right_sibling)
-                    curr = curr._right_sibling
+                    q_files.append((node_b, p_list))
 
         for item in q_files:
-            print(item._element)
+            print(item)
 
 
 
