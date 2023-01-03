@@ -1,13 +1,13 @@
 import dotenv
 import os
 from collections import deque
-lp_proj = dotenv.get_key(os.getenv('adventofcode2022'), 'root_local')
+lp_proj = dotenv.get_key(os.getenv('localadvent2022'), 'root_local')
 fname = lp_proj + "\\" + 'dec7thinput.txt'
 
 
 class TreeMake:
     class Node:
-        __slots__ = '_parent', '_element', '_first_child', '_right_sibling', 'num_children', 'num_siblings'
+        __slots__ = '_parent', '_element', '_first_child', '_right_sibling', 'num_children', 'num_siblings', 'dir_size'
 
         def __init__(self, element, parent=None, right_sibling=None, first_child=None):
             self._parent = parent
@@ -16,6 +16,7 @@ class TreeMake:
             self._right_sibling = right_sibling
             self.num_children = 0
             self.num_siblings = 0
+            self.dir_size = 0
 
     class Position:
         def __init__(self, container, node):
@@ -210,6 +211,20 @@ class TreeMake:
 
         return "Not Found"
 
+    def print_dir_contents(self, v):
+        pos = T._file_search(v)
+        pos_node = self._validate(pos)
+        res = []
+        if pos_node.num_children > 0:
+            curr = pos_node._first_child
+            res.append(curr._element)
+            while curr._right_sibling is not None:
+                res.append(curr._right_sibling._element)
+                curr = curr._right_sibling
+
+        return res
+
+
     def treemake(self, fname):
         with open(fname, 'r') as fp:
             line1 = fp.readline()
@@ -303,16 +318,41 @@ class TreeMake:
                 if vh_fn in parsed:
                     continue
                 parsed.add(vh_fn)
-                if int(node_b._element[0]) < 100000:
+                if int(node_b._element[0]) >= 0:
                     p_list = []
-                    # TODO: double check I am not missing a node due to loop struct
+                    org = node_b._element
                     while node_b is not self._root:
-                        p_list.append(node_b._parent._element)
+                        if node_b._parent._element != "/":
+                            p_list.append(node_b._parent._element)
                         node_b = node_b._parent
-                    q_files.append((node_b, p_list))
+                    q_files.append((org, p_list))
 
+        return q_files
+
+    def sum_size(self, q_files):
+        ans_dict = {}
+        dir_set = set()
         for item in q_files:
             print(item)
+            l = [x for x in item[1]]
+            for name in l:
+                if name != "/":
+                    dir_set.add(name)
+
+        for name in dir_set:
+            print(name)
+            t = 0
+            for item in q_files:
+                if name in item[1]:
+                    t += int(item[0][0])
+                    print(f'T: {t}')
+            ans_dict[name] = t
+
+        res = 0
+        for item, val in ans_dict.items():
+            print(item, val)
+
+
 
 
 
@@ -327,7 +367,7 @@ class TreeMake:
 if __name__ == "__main__":
     T = TreeMake()
     T.treemake(fname)
-    T.treecalc()
+    print(T.print_dir_contents('ctztn'))
 
 
     # NRoot = T._rootbegin("Root")
