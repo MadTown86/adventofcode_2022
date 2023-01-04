@@ -396,7 +396,7 @@ class TreeMake:
 
         while len(de) > 0:
             node_de = de.popleft()
-            if 100000 >= node_de.dir_size > 0:
+            if node_de.dir_size > 0:
                 dir_list.append((node_de, node_de._element, node_de.dir_size))
             if not node_de._first_child:
                 continue
@@ -444,7 +444,8 @@ if __name__ == "__main__":
     for node, name, val in dir_list:
         print(T.add_dir_sizes(node), name, val)
 
-
+    #1118405
+    #12545514
 
 
 
