@@ -5,6 +5,18 @@ lp_proj = dotenv.get_key(os.getenv('localadvent2022'), 'root_local')
 fname = lp_proj + "\\" + 'dec7thinput.txt'
 
 
+
+"""
+Note: I only checked the first few directory names to see if they repeated and made an assumption that they did not.
+
+I was wrong, specifically vmtnnfv is repeated many times and so the basis of the tree-make is now bunk.  I will have
+to actually incorporate the use of the '$ cd ..' call that I was trying to avoid.  
+
+I know that I can accomplish this change, but believe it may not be worth it now for what this problem actually is.
+
+
+Lots of useless code now ^^
+"""
 class TreeMake:
     class Node:
         __slots__ = '_parent', '_element', '_first_child', '_right_sibling', 'num_children', 'num_siblings', 'dir_size'
@@ -182,12 +194,28 @@ class TreeMake:
         res.append(pos._element)
         return res
 
+    def _breadth_search(self, p, v):
+        res = []
+        node = self._validate(p)
+        step = node._first_child
+        res.append((step._element, step))
+        while step._right_sibling is not None:
+            res.append((step._right_sibling._element, step._right_sibling))
+            step = step._right_sibling
+
+        for val, node in res:
+            if val == v:
+                return self._make_position(node)
+
+        return "Not Found"
+
     def _file_search(self, v):
+        res_bin = []
         q = deque()
         if not self._root:
             raise TypeError("Invalid Tree")
         if v == self._root._element:
-            return self._make_position(self._root)
+            res_bin.append(self._make_position(self._root))
         if self._num_children(self._make_position(self._root)) == 0:
             raise ValueError("Empty Tree")
         q.append(self._root._first_child)
@@ -200,7 +228,7 @@ class TreeMake:
         while len(q) > 0:
             pos = q.popleft()
             if pos._element == v:
-                return self._make_position(pos)
+                res_bin.append(self._make_position(pos))
             if pos.num_children > 0:
                 q.append(pos._first_child)
                 pos = pos._first_child
@@ -209,20 +237,35 @@ class TreeMake:
                     pos = pos._right_sibling
                 q.append(pos)
 
-        return "Not Found"
+        return res_bin
 
-    def print_dir_contents(self, v):
-        pos = T._file_search(v)
-        pos_node = self._validate(pos)
+    def print_dir_contents(self, n):
         res = []
-        if pos_node.num_children > 0:
-            curr = pos_node._first_child
+        if n.num_children > 0:
+            curr = n._first_child
             res.append(curr._element)
             while curr._right_sibling is not None:
                 res.append(curr._right_sibling._element)
                 curr = curr._right_sibling
 
         return res
+
+    def add_dir_sizes(self, n):
+        res = 0
+        if n.num_children > 0:
+            curr = n._first_child
+            res += curr.dir_size
+            while curr._right_sibling is not None:
+                res += curr._right_sibling.dir_size
+                curr = curr._right_sibling
+
+        return res
+
+    def _step_up(self, p):
+        node = self._validate(p)
+        if node._parent is self._root:
+            return self._make_position(self._root)
+        return self._make_position(node._parent)
 
 
     def treemake(self, fname):
@@ -234,30 +277,38 @@ class TreeMake:
                 node, addval = None, None
                 if line[:1] == '$':
                     if 'cd' in line:
-                        if '..' in line:
+                        if line[5:-1] == '/':
+                            curr_p = self._make_position(self._root)
                             continue
-                        else:
+                        if '..' in line:
+                            old_p = curr_p
+                            curr_p = self._step_up(old_p)
+                            continue
+                        elif curr_p:
+                            old_p = curr_p
                             currval = line[5:-1]
-                            curr_p = self._file_search(currval)
+                            curr_p = self._breadth_search(old_p, currval)
                             continue
                     if 'ls' in line:
                         continue
                 if 'dir' in line:
-                    check_bin = self._breadth_bin(curr_p)
-                    if line[5:-1] in check_bin:
+                    # check_bin = self._breadth_bin(curr_p)
+                    # if line[5:-1] in check_bin:
+                    #     continue
+                    # else:
+                    node = self._validate(curr_p)
+                    addval = line[4:-1]
+                    if node.num_children == 0:
+                        self._add_first_child(curr_p, addval)
                         continue
-                    else:
-                        node = self._validate(curr_p)
-                        addval = line[4:-1]
-                        if node.num_children == 0:
-                            self._add_first_child(curr_p, addval)
-                            continue
-                        add_posdir = self._atfirst_child(curr_p)
-                        self._add_right_sibling(add_posdir, addval)
-                        continue
+                    add_posdir = self._atfirst_child(curr_p)
+                    self._add_right_sibling(add_posdir, addval)
+                    continue
                 elif 'cd' and 'dir' not in line:
                     node = self._validate(curr_p)
                     addval = line.split(' ')
+                    f_size = int(addval[0])
+                    node.dir_size += f_size
                     if node.num_children == 0:
                         self._add_first_child(curr_p, addval)
                     else:
@@ -329,6 +380,39 @@ class TreeMake:
 
         return q_files
 
+    def treecalc2(self):
+        if not self._root:
+            raise ValueError("Not a Tree")
+        if not self._root._first_child:
+            raise ValueError("Empty Tree")
+        node = self._root._first_child
+        dir_list = []
+        de = deque()
+
+        de.append(node)
+        while node._right_sibling is not None:
+            de.append(node._right_sibling)
+            node = node._right_sibling
+
+        while len(de) > 0:
+            node_de = de.popleft()
+            if 100000 >= node_de.dir_size > 0:
+                dir_list.append((node_de, node_de._element, node_de.dir_size))
+            if not node_de._first_child:
+                continue
+            node_de = node_de._first_child
+            de.append(node_de)
+            while node_de._right_sibling is not None:
+                de.append(node_de._right_sibling)
+                node_de = node_de._right_sibling
+
+        return dir_list
+
+    def tree_calc3(self):
+        node = self._root
+
+
+
     def sum_size(self, q_files):
         ans_dict = {}
         dir_set = set()
@@ -353,21 +437,17 @@ class TreeMake:
             print(item, val)
 
 
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
     T = TreeMake()
     T.treemake(fname)
-    print(T.print_dir_contents('ctztn'))
+    dir_list = T.treecalc2()
+    for node, name, val in dir_list:
+        print(T.add_dir_sizes(node), name, val)
+
+
+
+
+
 
 
     # NRoot = T._rootbegin("Root")
