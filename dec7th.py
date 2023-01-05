@@ -1,7 +1,7 @@
 import dotenv
 import os
 from collections import deque
-lp_proj = dotenv.get_key(os.getenv('localadvent2022'), 'root_local')
+lp_proj = dotenv.get_key(os.getenv('adventofcode2022'), 'root_local')
 fname = lp_proj + "\\" + 'dec7thinput.txt'
 
 
@@ -122,6 +122,11 @@ class TreeMake:
         node._first_child = self.Node(e, parent=node)
         node._first_child.num_siblings += 1
         node.num_children += 1
+        if isinstance(e, list):
+            size_increase = int(e[0])
+            while node._parent is not None:
+                node._parent.dir_size += size_increase
+                node = node._parent
         return self._make_position(node._first_child)
 
     def _add_right_sibling(self, p, e):
@@ -132,6 +137,11 @@ class TreeMake:
         new_node = self.Node(e, parent=node._parent)
         node._right_sibling = new_node
         node._parent.num_children += 1
+        if isinstance(e, list):
+            size_increase = int(e[0])
+            while node._parent is not None:
+                node._parent.dir_size += size_increase
+                node = node._parent
         return self._make_position(new_node)
 
     def _replace_value(self, p, e):
@@ -267,7 +277,6 @@ class TreeMake:
             return self._make_position(self._root)
         return self._make_position(node._parent)
 
-
     def treemake(self, fname):
         with open(fname, 'r') as fp:
             line1 = fp.readline()
@@ -360,9 +369,8 @@ class TreeMake:
                     q_all.append(node_b._first_child)
                     curr = node_b._first_child
                     while curr._right_sibling is not None:
-                        if curr._right_sibling not in q_all:
-                            q_all.append(curr._right_sibling)
-                            curr = curr._right_sibling
+                        q_all.append(curr._right_sibling)
+                        curr = curr._right_sibling
             if isinstance(node_b._element, list):
                 vh_int = int(node_b._element[0])
                 vh_fn = node_b._element[1]
@@ -396,7 +404,7 @@ class TreeMake:
 
         while len(de) > 0:
             node_de = de.popleft()
-            if node_de.dir_size > 0:
+            if 100000 >= node_de.dir_size > 0:
                 dir_list.append((node_de, node_de._element, node_de.dir_size))
             if not node_de._first_child:
                 continue
@@ -410,8 +418,6 @@ class TreeMake:
 
     def tree_calc3(self):
         node = self._root
-
-
 
     def sum_size(self, q_files):
         ans_dict = {}
@@ -441,8 +447,13 @@ if __name__ == "__main__":
     T = TreeMake()
     T.treemake(fname)
     dir_list = T.treecalc2()
+    res = 0
     for node, name, val in dir_list:
         print(T.add_dir_sizes(node), name, val)
+        res += val
+
+    print(res)
+
 
     #1118405
     #12545514
