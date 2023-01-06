@@ -4,10 +4,10 @@ from collections import deque
 lp_proj = dotenv.get_key(os.getenv('adventofcode2022'), 'root_local')
 fname = lp_proj + "\\" + 'dec7thinput.txt'
 
+# File system, don't ask me why I did it this way, exercise with creating and traversing a node structure
 class TreeMake:
     class Node:
-        __slots__ = '_parent', '_element', '_first_child', '_right_sibling', 'num_children', 'num_siblings', 'dir_size',
-
+        __slots__ = '_parent', '_element', '_first_child', '_right_sibling', 'num_children', 'dir_size',
 
         def __init__(self, element, parent=None, right_sibling=None, first_child=None):
             self._parent = parent
@@ -15,7 +15,6 @@ class TreeMake:
             self._first_child = first_child
             self._right_sibling = right_sibling
             self.num_children = 0
-            self.num_siblings = 0
             self.dir_size = 0
 
     # Position theoretically used for O(1) additions/deletions/replacements - not implemented here
@@ -38,8 +37,8 @@ class TreeMake:
             raise TypeError('Not a valid posiition')
         if p._container is not self:
             raise ValueError('Does not belong to this contaienr')
-        # if p._node._parent is p._node:
-        #     raise ValueError("p is no longer valid")
+        if p._node._parent is p._node:
+            raise ValueError("p is no longer valid")
         return p._node
 
     def _make_position(self, node):
@@ -62,38 +61,7 @@ class TreeMake:
             raise ValueError('node at position has no child')
         return self._make_position(node._first_child)
 
-    def _at_last_sibling(self, p):
-        # Returns position of last sibling
-        node = self._validate(p)
-        if node._right_sibling is None:
-            return self._make_position(node)
-        else:
-            while node._right_sibling is not None:
-                node = node._right_sibling
-            return self._make_position(node)
-
-    def _at_parent(self, p):
-        # Return position of parent of node at position p else Raise ValueError
-        node = self._validate(p)
-        if node._parent is None and self._root is node:
-            raise ValueError('node at position is root, no parent')
-        return self._make_position(node._parent)
-
-    # Counters
-    def _num_children(self, p):
-        # Returns num_children attribute of node at p
-        node = self._validate(p)
-        return node.num_children
-
-    def _num_siblings(self, p):
-        # Returns number of siblings stored at first sibling only
-        node = self._validate(p)
-        if node._parent._first_child is None:
-            return 0
-        return node._parent._first_child.num_siblings
-
     # Accessors
-
     def _rootbegin(self, e):
         self._root = self.Node(e)
         return self._make_position(self._root)
@@ -104,7 +72,6 @@ class TreeMake:
         if node._first_child is not None:
             raise ValueError("First child already exists")
         node._first_child = self.Node(e, parent=node)
-        node._first_child.num_siblings += 1
         node.num_children += 1
         return self._make_position(node._first_child)
 
@@ -117,7 +84,6 @@ class TreeMake:
         node._right_sibling = new_node
         node._parent.num_children += 1
         return self._make_position(new_node)
-
 
     # Traversal
     def _breadth_search(self, p, v):
@@ -144,7 +110,6 @@ class TreeMake:
         return self._make_position(node._parent)
 
     # Public
-
     def treemake(self, fname):
         # Given input text at file name, instantiates the file system
         with open(fname, 'r') as fp:
