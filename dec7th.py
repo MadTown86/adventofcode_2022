@@ -221,10 +221,11 @@ class TreeMake:
 if __name__ == "__main__":
     T = TreeMake()
     T.treemake(fname)
-    dir_list_ans1 = T.system_search_acc(100000)
+    dir_list_ans1 = T.system_search_acc(999999999999999)
     res1 = 0
 
     for node, name, val in dir_list_ans1:
+        print(node, name, val)
         res1 += val
 
     print(f'RES1: {res1}') # Part 1 Answer
