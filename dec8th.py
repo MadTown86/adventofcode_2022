@@ -72,36 +72,56 @@ print(f' ANS1: {count}')
 
 
 res_list2 = []
-ncount, scount, ecount, wcount, rank = 0, 0, 0, 0, 0
+highest_rank = [0, 0], 0
+rank = 0
 for x in range(totl):
     for y in range(totl):
-
+        ncount, scount, ecount, wcount = 0, 0, 0, 0
         pos = lines[x][y]
 
+        if x != 0:
+            for xn in nrange(x):
+                if pos > step_x(xn):
+                    ncount += 1
+                if pos <= step_x(xn):
+                    ncount += 1
+                    break
+        if x != totl:
+            for xs in srange(x):
+                if pos > step_x(xs):
+                    scount += 1
+                if pos <= step_x(xs):
+                    scount += 1
+                    break
 
-        for xn in nrange(x):
-            if pos > step_x(xn):
-                ncount += 1
-            if pos <= step_x(xn):
-                break
-        for xs in srange(x):
-            if pos > step_x(xs):
-                scount += 1
-            if pos <= step_x(xs):
-                break
-        for ye in erange(y):
-            if pos > step_y(ye):
-                ecount += 1
-            if pos <= step_y(ye):
-                break
-        for yw in wrange(y):
-            if pos > step_y(yw):
-                wcount += 1
-            if pos <= step_y(yw):
-                break
+        if y != 0:
+            for ye in erange(y):
+                if pos > step_y(ye):
+                    ecount += 1
+                if pos <= step_y(ye):
+                    ecount += 1
+                    break
 
-        rank = ncount * scount *
-        res_list2.append(([x, y], pos, rank))
+        if y != totl:
+            for yw in wrange(y):
+                if pos > step_y(yw):
+                    wcount += 1
+                if pos <= step_y(yw):
+                    wcount += 1
+                    break
+
+        rank = ncount * scount * ecount * wcount
+
+        print(f'RANK: {rank}')
+
+        res_list2.append(([x, y], [ncount, scount, ecount, wcount], pos, rank))
+
+        if rank > highest_rank[1]:
+            highest_rank = ([x, y], rank)
+
+for item in res_list2:
+    print(item)
+print(f'Ans2: {highest_rank}')
 
 
 
