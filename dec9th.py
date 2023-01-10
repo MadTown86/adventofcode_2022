@@ -23,7 +23,8 @@ class Snake:
     def __init__(self):
         self.head = self.Node()
         self.tail = self.Node()
-        self.positions = [self.tail._coord()]
+        self.positions = {(self.tail.x, self.tail.y)}
+
 
     def _move_head(self, left: int = None, right: int = None, up: int = None, down: int = None):
         if left:
@@ -36,10 +37,42 @@ class Snake:
             self.head.y = self.head.y - down
 
     def _move_tail(self):
+        x_dif = self.head.x - self.tail.x
+        y_dif = self.head.y - self.tail.y
+
+        def same_axis(delt, x=True):
+            if delt > 0:
+                while delt > 1:
+                    if x:
+                        self.tail.y += 1
+                    else:
+                        self.tail.x += 1
+                    self.positions.add(self.tail._coord())
+                    delt -= 1
+            elif delt < 0:
+                while delt < -1:
+                    if x:
+                        self.tail.y -= 1
+                    else:
+                        self.tail.x -= 1
+                    self.positions.add(self.tail._coord())
+                    delt += 1
+
+        # UP/DOWN - same axis:
         if self.head.x == self.tail.x:
-            pass
+            same_axis(y_dif)
+        # LEFT/RIGHT - same axis:
         if self.head.y == self.tail.y:
-            pass
+            same_axis(x_dif, x=False)
+
+        # 1 STEP MOVES:
+        if x_dif == 1 and y_dif == 1:
+
+
+
+
+
+
 
     def snake_run(self, f: str):
         with open(f, 'r') as fl:
@@ -48,20 +81,24 @@ class Snake:
             print(line)
             if "L" in line:
                 self._move_head(left=int(line[2:].strip()))
-                print(self.head.x, self.head.y)
+                print(f'HEAD: {self.head.x, self.head.y}')
                 self._move_tail()
+                print(f'TAIL: {self.tail.x, self.tail.y}')
             if "R" in line:
                 self._move_head(right=int(line[2:].strip()))
-                print(self.head.x, self.head.y)
+                print(f'HEAD: {self.head.x, self.head.y}')
                 self._move_tail()
+                print(f'TAIL: {self.tail.x, self.tail.y}')
             if "U" in line:
                 self._move_head(up=int(line[2:].strip()))
-                print(self.head.x, self.head.y)
+                print(f'HEAD: {self.head.x, self.head.y}')
                 self._move_tail()
+                print(f'TAIL: {self.tail.x, self.tail.y}')
             if "D" in line:
                 self._move_head(down=int(line[2:].strip()))
-                print(self.head.x, self.head.y)
+                print(f'HEAD: {self.head.x, self.head.y}')
                 self._move_tail()
+                print(f'TAIL: {self.tail.x, self.tail.y}')
 
 if __name__ == "__main__":
     S = Snake()
