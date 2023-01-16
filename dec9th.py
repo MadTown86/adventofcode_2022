@@ -1,5 +1,6 @@
 import os
 import dotenv
+import matplotlib.pyplot as plt
 
 dotenv.load_dotenv()
 input_dir = os.getenv('adventofcode2022')
@@ -45,9 +46,6 @@ class Snake:
         x_dif = self.head.x - self.tail.x
         y_dif = self.head.y - self.tail.y
 
-        print(f'ORG HEAD: {self.head.x, self.head.y}')
-        print(f'ORG TAIL: {self.tail.x, self.tail.y}')
-
         print(f'DIF: {x_dif, y_dif}')
 
         def same_axis(delt, x=True, ):
@@ -68,100 +66,109 @@ class Snake:
                     self.positions.add(self.tail._coord())
                     delt += 1
 
+        if all([self.head.x == self.tail.x, self.head.y == self.tail.y]):
+            pass
         # UP/DOWN - same axis:
-        if self.head.x == self.tail.x:
+        elif self.head.x == self.tail.x and self.head.y != self.tail.y:
             same_axis(y_dif)
         # LEFT/RIGHT - same axis:
-        if self.head.y == self.tail.y:
+        elif self.head.y == self.tail.y and self.head.x != self.tail.x:
             same_axis(x_dif, x=False)
 
         # 1 STEP MOVES:
 
-        if x_dif == 1 and y_dif == 1:
+        elif x_dif == 1 and y_dif == 1:
             # before h/y | after h/y - h(3, 3)t(3, 2) after: h(4, 3)t(3,2)
             if direc == "right":
                 self.tail.y += 1
             # before: h(3, 3) t(2, 3) - after: h(3, 4) t(2, 3)
-            if direc == "up":
+            elif direc == "up":
                 self.tail.x += 1
-        if x_dif == -1 and y_dif == 1:
+        elif x_dif == -1 and y_dif == 1:
             # before h(3, 3) t(3, 2) after: h(2, 3) t(3, 2)
             if direc == "left":
                 self.tail.y += 1
-            if direc == "up":
+            elif direc == "up":
                 self.tail.x -= 1
-        if x_dif == -1 and y_dif == -1:
+        elif x_dif == -1 and y_dif == -1:
             if direc == "left":
                 self.tail.y -= 1
-            if direc == "down":
+            elif direc == "down":
                 self.tail.x -= 1
-        if x_dif == 1 and y_dif == -1:
+        elif x_dif == 1 and y_dif == -1:
             if direc == "down":
                 self.tail.x += 1
-            if direc == "right":
+            elif direc == "right":
                 self.tail.y -= 1
 
-        if x_dif == 1 and y_dif > 0:
+        elif x_dif == 1 and y_dif > 0:
             self.tail.y += 1
             y_dif -= 1
             self.tail.x += 1
             self.positions.add(self.tail._coord())
             same_axis(y_dif, x=False)
 
-        if x_dif == 1 and y_dif < 0:
+        elif x_dif == 1 and y_dif < 0:
             self.tail.y -= 1
             y_dif += 1
             self.tail.x += 1
             self.positions.add(self.tail._coord())
             same_axis(y_dif, x=False)
 
-        if x_dif == -1 and y_dif > 0:
+        elif x_dif == -1 and y_dif > 0:
             self.tail.y += 1
             y_dif -= 1
             self.tail.x -= 1
             self.positions.add(self.tail._coord())
             same_axis(y_dif, x=False)
 
-        if x_dif == -1 and y_dif < 0:
+        elif x_dif == -1 and y_dif < 0:
             self.tail.y -= 1
             y_dif += 1
             self.tail.x -= 1
             self.positions.add(self.tail._coord())
             same_axis(y_dif, x=False)
 
-        if y_dif == 1 and x_dif > 0:
+        elif y_dif == 1 and x_dif > 0:
             self.tail.x += 1
             x_dif -= 1
             self.tail.y += 1
             self.positions.add(self.tail._coord())
             same_axis(x_dif)
 
-        if y_dif == 1 and x_dif < 0:
+        elif y_dif == 1 and x_dif < 0:
             self.tail.x -= 1
             x_dif += 1
             self.tail.y += 1
             self.positions.add(self.tail._coord())
             same_axis(x_dif)
 
-        if y_dif == -1 and x_dif > 0:
+        elif y_dif == -1 and x_dif > 0:
             self.tail.x += 1
             x_dif -= 1
             self.tail.y -= 1
             self.positions.add(self.tail._coord())
             same_axis(x_dif)
 
-        if y_dif == -1 and x_dif < 0:
+        elif y_dif == -1 and x_dif < 0:
             self.tail.x -= 1
             x_dif += 1
             self.tail.y -= 1
             self.positions.add(self.tail._coord())
             same_axis(x_dif)
+
+        else:
+            print("missed element")
+            print(f'TAIL CURRENT: {self.tail.x, self.tail.y}')
+            print(f'HEAD CURRENT: {self.head.x, self.head.y}')
 
     def snake_run(self, f: str):
         with open(f, 'r') as fl:
             lines = fl.readlines()
         for line in lines:
             print(line)
+            print(f'TAIL ORIGINAL: {self.tail.x, self.tail.y}')
+            print(f'HEAD ORIGINAL: {self.head.x, self.head.y}')
             if "L" in line:
                 hm = self._move_head(left=int(line[2:].strip()))
                 print(f'HEAD: {self.head.x, self.head.y}')
