@@ -45,6 +45,11 @@ class Snake:
         x_dif = self.head.x - self.tail.x
         y_dif = self.head.y - self.tail.y
 
+        print(f'ORG HEAD: {self.head.x, self.head.y}')
+        print(f'ORG TAIL: {self.tail.x, self.tail.y}')
+
+        print(f'DIF: {x_dif, y_dif}')
+
         def same_axis(delt, x=True, ):
             if delt > 0:
                 while delt > 1:
@@ -96,17 +101,61 @@ class Snake:
             if direc == "right":
                 self.tail.y -= 1
 
-        if x_dif < y_dif:
-            
-            pass
+        if x_dif == 1 and y_dif > 0:
+            self.tail.y += 1
+            y_dif -= 1
+            self.tail.x += 1
+            self.positions.add(self.tail._coord())
+            same_axis(y_dif, x=False)
 
-        if x_dif > y_dif:
+        if x_dif == 1 and y_dif < 0:
+            self.tail.y -= 1
+            y_dif += 1
+            self.tail.x += 1
+            self.positions.add(self.tail._coord())
+            same_axis(y_dif, x=False)
 
-            pass
+        if x_dif == -1 and y_dif > 0:
+            self.tail.y += 1
+            y_dif -= 1
+            self.tail.x -= 1
+            self.positions.add(self.tail._coord())
+            same_axis(y_dif, x=False)
 
-        if x_dif == 0 and y_dif == 0:
+        if x_dif == -1 and y_dif < 0:
+            self.tail.y -= 1
+            y_dif += 1
+            self.tail.x -= 1
+            self.positions.add(self.tail._coord())
+            same_axis(y_dif, x=False)
 
-            pass
+        if y_dif == 1 and x_dif > 0:
+            self.tail.x += 1
+            x_dif -= 1
+            self.tail.y += 1
+            self.positions.add(self.tail._coord())
+            same_axis(x_dif)
+
+        if y_dif == 1 and x_dif < 0:
+            self.tail.x -= 1
+            x_dif += 1
+            self.tail.y += 1
+            self.positions.add(self.tail._coord())
+            same_axis(x_dif)
+
+        if y_dif == -1 and x_dif > 0:
+            self.tail.x += 1
+            x_dif -= 1
+            self.tail.y -= 1
+            self.positions.add(self.tail._coord())
+            same_axis(x_dif)
+
+        if y_dif == -1 and x_dif < 0:
+            self.tail.x -= 1
+            x_dif += 1
+            self.tail.y -= 1
+            self.positions.add(self.tail._coord())
+            same_axis(x_dif)
 
     def snake_run(self, f: str):
         with open(f, 'r') as fl:
