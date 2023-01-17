@@ -167,8 +167,10 @@ class Snake:
             lines = fl.readlines()
         for line in lines:
             print(line)
-            print(f'TAIL ORIGINAL: {self.tail.x, self.tail.y}')
-            print(f'HEAD ORIGINAL: {self.head.x, self.head.y}')
+            torg = self.tail.x, self.tail.y
+            horg = self.head.x, self.head.y
+            print(f'TAIL ORIGINAL: {torg}')
+            print(f'HEAD ORIGINAL: {horg}')
             if "L" in line:
                 hm = self._move_head(left=int(line[2:].strip()))
                 print(f'HEAD: {self.head.x, self.head.y}')
