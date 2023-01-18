@@ -1,18 +1,17 @@
 import os
-import dotenv
-
-dotenv.load_dotenv()
-input_dir = os.getenv('adventofcode2022')
-fname = os.path.join(input_dir, 'dec9thinput.txt')
 from time import perf_counter
 
-tail_positions = []
-xh, xt, yh, ht = 0, 0, 0, 0
+import dotenv
+
+
+dotenv.load_dotenv()
+input_dir = os.getenv("adventofcode2022")
+fname = os.path.join(input_dir, "dec9thinput.txt")
 
 
 class Snake:
     class Node:
-        __slots__ = 'x', 'y'
+        __slots__ = "x", "y"
 
         def __init__(self):
             self.x = 0
@@ -29,8 +28,9 @@ class Snake:
     def position_print(self):
         print(len(self.positions))
 
-    def _move_head(self, left: int = None, right: int = None, up: int = None, down: int = None):
-        old = [self.head.x, self.head.y]
+    def _move_head(
+        self, left: int = None, right: int = None, up: int = None, down: int = None
+    ):
 
         if left:
             self.head.x = self.head.x - left
@@ -45,7 +45,7 @@ class Snake:
             self.head.y = self.head.y - down
             return "down"
 
-    def _move_tail(self, direc: 'str' = "up"):
+    def _move_tail(self, direc: "str" = "up"):
         x_dif = self.head.x - self.tail.x
         y_dif = self.head.y - self.tail.y
 
@@ -163,11 +163,9 @@ class Snake:
             same_axis(x_dif, x=True)
 
     def snake_run(self, f: str):
-        with open(f, 'r') as fl:
+        with open(f, "r") as fl:
             lines = fl.readlines()
         for line in lines:
-            torg = self.tail.x, self.tail.y
-            horg = self.head.x, self.head.y
             if "L" in line:
                 hm = self._move_head(left=int(line[2:].strip()))
                 self._move_tail(hm)
@@ -180,6 +178,7 @@ class Snake:
             if "D" in line:
                 hm = self._move_head(down=int(line[2:].strip()))
                 self._move_tail(hm)
+
 
 if __name__ == "__main__":
     start = perf_counter()
